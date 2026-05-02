@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bangla to Banglish Converter</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+            --card-bg: #ffffff;
+            --text-main: #2d3436;
+            --accent-color: #005bea;
+            --shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .app-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 550px;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--text-main);
+            margin-bottom: 25px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .input-wrapper {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #636e72;
+            text-transform: uppercase;
+            margin-left: 5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            height: 130px;
+            padding: 18px;
+            border: 2px solid #edf2f7;
+            border-radius: 18px;
+            font-size: 16px;
+            color: #2d3436;
+            background: #f8faff;
+            resize: none;
+            transition: all 0.3s ease;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-color);
+            background: #fff;
+            box-shadow: 0 0 15px rgba(0, 91, 234, 0.1);
+        }
+
+        .output-container {
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        .output-box {
+            background: #f1f3f5;
+            padding: 18px;
+            border-radius: 18px;
+            min-height: 130px;
+            font-size: 1.1rem;
+            color: #0984e3;
+            font-weight: 500;
+            word-wrap: break-word;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .placeholder-text {
+            color: #b2bec3;
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .copy-btn {
+            margin-top: 15px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 15px;
+            background: var(--text-main);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .copy-btn:hover {
+            background: #000;
+            transform: translateY(-2px);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Responsive Mobile */
+        @media (max-width: 480px) {
+            .app-card { padding: 25px; border-radius: 20px; }
+            h1 { font-size: 1.5rem; }
+            textarea { height: 110px; }
+            .output-box { min-height: 110px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <h1>Bangla to Banglish</h1>
+
+    <div class="input-wrapper">
+        <label>Bangla Input</label>
+        <textarea id="banglaInput" placeholder="এখানে বাংলা লিখুন..." oninput="autoConvert()"></textarea>
+    </div>
+
+    <div class="output-container">
+        <label>Banglish Output</label>
+        <div id="banglishOutput" class="output-box">
+            <span class="placeholder-text">আপনার বাংলিশ এখানে দেখা যাবে...</span>
+        </div>
+        <button class="copy-btn" onclick="copyText()">
+            Copy Text
+        </button>
+    </div>
+</div>
+
+<script>
+    const mapping = {
+        'অ': 'o', 'আ': 'a', 'ই': 'i', 'ঈ': 'ee', 'উ': 'u', 'ঊ': 'u', 'এ': 'e', 'ঐ': 'oi', 'ও': 'o', 'ঔ': 'ou',
+        'া': 'a', 'ি': 'i', 'ী': 'ee', 'ু': 'u', 'ূ': 'u', 'ে': 'e', 'ৈ': 'oi', 'ো': 'o', 'ৌ': 'ou', 'ৃ': 'ri',
+        'ক': 'k', 'খ': 'kh', 'গ': 'g', 'ঘ': 'gh', 'ঙ': 'ng',
+        'চ': 'ch', 'ছ': 'chh', 'জ': 'j', 'ঝ': 'jh', 'ঞ': 'nyo',
+        'ট': 't', 'ঠ': 'th', 'ড': 'd', 'ঢ': 'dh', 'ণ': 'n',
+        'ত': 't', 'থ': 'th', 'দ': 'd', 'ধ': 'dh', 'ন': 'n',
+        'প': 'p', 'ফ': 'f', 'ব': 'b', 'ভ': 'bh', 'ম': 'm',
+        'য': 'z', 'র': 'r', 'ল': 'l', 'শ': 'sh', 'ষ': 'sh', 'স': 's', 'হ': 'h',
+        'ড়': 'r', 'ঢ়': 'rh', 'য়': 'y', 'ৎ': 't', 'ং': 'ng', 'ঃ': 'h', 'ঁ': 'n'
+    };
+
+    const specialCases = {
+        'আমি': 'ami', 'তুমি': 'tumi', 'আমরা': 'amra', 'তোমরা': 'tomra',
+        'ভালোবাসি': 'valobashi', 'খবর': 'khobor', 'ভালো': 'valo', 'কি': 'ki'
+    };
+
+    function autoConvert() {
+        const input = document.getElementById('banglaInput').value;
+        const outputBox = document.getElementById('banglishOutput');
+        
+        if (input.trim() === "") {
+            outputBox.innerHTML = '<span class="placeholder-text">আপনার বাংলিশ এখানে দেখা যাবে...</span>';
+            return;
+        }
+
+        let words = input.split(/(\s+)/);
+        let result = words.map(word => {
+            if (specialCases[word]) return specialCases[word];
+            if (word.trim() === "") return word;
+
+            let converted = "";
+            for (let i = 0; i < word.length; i++) {
+                let char = word[i];
+                converted += mapping[char] || char;
+            }
+            return converted;
+        }).join('');
+
+        outputBox.innerText = result;
+        outputBox.style.borderColor = "#005bea33";
+    }
+
+    function copyText() {
+        const text = document.getElementById('banglishOutput').innerText;
+        const placeholder = "আপনার বাংলিশ এখানে দেখা যাবে...";
+        
+        if (text && text !== placeholder) {
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = "✓ Copied!";
+                btn.style.background = "#2ecc71";
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = "#2d3436";
+                }, 1500);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>
